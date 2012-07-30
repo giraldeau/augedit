@@ -17,6 +17,7 @@ set(GETTEXT_PACKAGE "augedit")
 set(RELEASE_NAME "Augeas configuration editor.")
 set(VERSION "0.0.1")
 set(VERSION_INFO "Release")
+ENABLE_TESTING()
 
 # Packaging filenamesnames.
 set(ARCHIVE_BASE_NAME ${CMAKE_PROJECT_NAME}-${VERSION})

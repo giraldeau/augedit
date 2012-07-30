@@ -15,3 +15,5 @@ OPTIONS
 
 add_executable(test-load ${TESTS_VALA_C})
 target_link_libraries(test-load ${DEPS_LIBRARIES} gthread-2.0)
+
+ADD_TEST(test-load ${CMAKE_CURRENT_BINARY_DIR}/test-load)
