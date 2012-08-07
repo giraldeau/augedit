@@ -17,9 +17,9 @@ set(GETTEXT_PACKAGE "augedit")
 set(RELEASE_NAME "Augeas configuration editor.")
 set(VERSION "0.0.1")
 set(VERSION_INFO "Release")
-ENABLE_TESTING()
-INCLUDE(CTest)
-set(MEMORYCHECK_COMMAND FILEPATH=/home/kitware/local/bin/valgrind)
+#ENABLE_TESTING()
+#INCLUDE(CTest)
+#set(MEMORYCHECK_COMMAND FILEPATH=/home/kitware/local/bin/valgrind)
 
 # Packaging filenamesnames.
 set(ARCHIVE_BASE_NAME ${CMAKE_PROJECT_NAME}-${VERSION})
@@ -52,6 +52,7 @@ pkg_check_modules(PKG_LIBXML QUIET libxml-2.0)
 pkg_check_modules(PKG_AUGEAS QUIET augeas>=0.8)
 
 set(DEPS_CFLAGS
+    -I${CMAKE_SOURCE_DIR}/src
     ${PKG_BASE_CFLAGS}
     ${PKG_LIBXML_CFLAGS}
     ${PKG_AUGEAS_CFLAGS}
