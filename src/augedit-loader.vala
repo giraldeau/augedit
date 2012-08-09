@@ -7,7 +7,12 @@
 using Gtk;
 using Augeas;
 
-public class AugeasLoader : Object {
+public errordomain AugeditError {
+    NO_ERROR,
+    LOAD_FAILED
+}
+
+public class AugeditLoader : Object {
 
     public enum Columns {
         KEY = 0,
@@ -17,41 +22,21 @@ public class AugeasLoader : Object {
     public TreeStore store { get; private set; }
     private Augeas.Tree augeas;
     
-    public AugeasLoader() {
-        augeas = new Augeas.Tree(null, null, InitFlags.NO_LOAD);
+    public AugeditLoader() {
+        this.with_args(null, null);
+    }
+
+    public AugeditLoader.with_args(string? root, string? loadpath) {
+        augeas = new Augeas.Tree(root, loadpath, InitFlags.NO_LOAD);
         store = new TreeStore(2, typeof(string), typeof(string));
     }
     
-    public void load() {
+    public void load() throws AugeditError {
         // FIXME: spawn a thread for async loading
-//        augeas.load();
-        TreeIter iter;
-        store.append(out iter, null);
-	    store.set(iter, Columns.KEY, "test 1", 
-	                    Columns.VALUE, "test 2", -1);
-        store.append(out iter, null);
-	    store.set(iter, Columns.KEY, "test 3", 
-	                    Columns.VALUE, "test 4", -1);
-	    /*
-
-        store.clear();
-        string[] keys = augeas.match("/*");
-        foreach(string key in keys) {
-            string k = key[1:key.length];
-            string? val;
-            augeas.get("/" + k, out val);
-            string value = val != null ? val : "";
-            stdout.printf("{ \"%s\" = \"%s\"\n", k, value);
-            
-            store.append(out iter, null);
-            store.set(iter,
-                Columns.KEY, k,
-                Columns.VALUE, val , -1);
+        if (augeas.load() < 0) {
+            throw new AugeditError.LOAD_FAILED("Failed to load augeas tree");
         }
-        */
     }
-    
-    
     
     public unowned Augeas.Tree get_augeas() {
         return augeas;

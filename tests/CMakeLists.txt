@@ -12,10 +12,12 @@ OPTIONS
     --vapidir=${CMAKE_SOURCE_DIR}/src
     --thread
     --enable-checking
-    --fatal-warnings
+#    --fatal-warnings
 )
 
 add_executable(test-load ${TESTS_VALA_C})
 target_link_libraries(test-load ${DEPS_LIBRARIES} gthread-2.0 augedit-static)
 
 ADD_TEST(test-load ${CMAKE_CURRENT_BINARY_DIR}/test-load)
+#set_property(TEST test-load PROPERTY ENVIRONMENT "abs_top_srcdir=${CMAKE_SOURCE_DIR}")
+SET_TESTS_PROPERTIES(test-load PROPERTIES ENVIRONMENT "abs_top_srcdir=${CMAKE_SOURCE_DIR}")

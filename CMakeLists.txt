@@ -17,9 +17,9 @@ set(GETTEXT_PACKAGE "augedit")
 set(RELEASE_NAME "Augeas configuration editor.")
 set(VERSION "0.0.1")
 set(VERSION_INFO "Release")
-#ENABLE_TESTING()
-#INCLUDE(CTest)
-#set(MEMORYCHECK_COMMAND FILEPATH=/home/kitware/local/bin/valgrind)
+ENABLE_TESTING()
+INCLUDE(CTest)
+set(MEMORYCHECK_COMMAND FILEPATH=/usr/bin/valgrind)
 
 # Packaging filenamesnames.
 set(ARCHIVE_BASE_NAME ${CMAKE_PROJECT_NAME}-${VERSION})
