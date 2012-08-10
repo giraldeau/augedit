@@ -23,7 +23,6 @@ public class AugeditLoadTest: Object {
             return null;
         }
         string test_root = Path.build_path("/", abs_top_srcdir, "tests", "root");
-	    stdout.printf("%s\n", test_root);
 	    return test_root;
     }
     
@@ -43,9 +42,28 @@ public class AugeditLoadTest: Object {
     	assert(has_error == false);
 	}
 	
+	/*
+	 * The number of augeas and store nodes must match
+	 */
+	public static void test_load_root() {
+	    string root = get_root();
+	    var loader = new AugeditLoader.with_args(root, null);
+	    try {
+    	    loader.load();
+    	} catch (AugeditError e) { }
+    	int act = 0;
+    	loader.store.foreach((a, b, c) => {
+    	    act++;
+    	    return false;
+    	});
+    	string[]? res = loader.get_augeas().match("//*");
+    	assert(res.length == act);
+	}
+	
 	public static void main (string[] args) {
 		Test.init (ref args);
 		Test.add_func ("/augedit/load/simple", test_load_simple);
+		Test.add_func ("/augedit/load/root", test_load_root);
 		Test.run ();
 	}
 }

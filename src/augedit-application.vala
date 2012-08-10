@@ -62,6 +62,5 @@ public class AugeditApplication : Window {
         container.remove(spinner);
         container.pack_start(scroll, true, true, 0);
         this.tree_view.set_model(loader.store);
-        this.tree_view.expand_all();
     }
 }
