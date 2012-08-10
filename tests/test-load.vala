@@ -29,7 +29,7 @@ public class AugeditLoadTest: Object {
     /*
      * Just try to build the object and load the tree
      */
-	public static void test_load_simple() {
+	public static void test_load_sync() {
 	    string root = get_root();
 	    var loader = new AugeditLoader.with_args(root, null);
 	    bool has_error = false;
@@ -45,12 +45,20 @@ public class AugeditLoadTest: Object {
 	/*
 	 * The number of augeas and store nodes must match
 	 */
-	public static void test_load_root() {
+	public static void test_load_async() {
 	    string root = get_root();
+	    var loop = new MainLoop();
 	    var loader = new AugeditLoader.with_args(root, null);
-	    try {
-    	    loader.load();
-    	} catch (AugeditError e) { }
+	    loader.load_async.begin((obj, res) => {
+	        try {
+	            loader.load_async.end(res);
+        	} catch (ThreadError e) {
+        	    stderr.printf("%s\n", e.message);
+        	    assert(false);
+        	}
+        	loop.quit();
+    	});
+    	loop.run(); // wait until loaded
     	int act = 0;
     	loader.store.foreach((a, b, c) => {
     	    act++;
@@ -62,8 +70,9 @@ public class AugeditLoadTest: Object {
 	
 	public static void main (string[] args) {
 		Test.init (ref args);
-		Test.add_func ("/augedit/load/simple", test_load_simple);
-		Test.add_func ("/augedit/load/root", test_load_root);
+		Test.add_func ("/augedit/load/sync", test_load_sync);
+		Test.add_func ("/augedit/load/async", test_load_async);
 		Test.run ();
+		
 	}
 }

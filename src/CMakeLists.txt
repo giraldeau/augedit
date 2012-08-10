@@ -14,6 +14,8 @@ PACKAGES
 GENERATE_VAPI
     augedit-static
 OPTIONS
+    -g
+    --save-temps
     --thread
     --enable-checking
 #    --fatal-warnings

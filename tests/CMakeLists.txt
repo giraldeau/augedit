@@ -9,6 +9,8 @@ PACKAGES
     ${AUGEDIT_PACKAGES}
     augedit-static
 OPTIONS
+    -g
+    --save-temps
     --vapidir=${CMAKE_SOURCE_DIR}/src
     --thread
     --enable-checking
