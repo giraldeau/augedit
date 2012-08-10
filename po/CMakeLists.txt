@@ -111,7 +111,10 @@ ADD_CUSTOM_TARGET(
         --keyword=N_
         --keyword=q_
         --keyword=translate:2
-        --add-comments=TRANSLATORS:
+        --add-comments="TRANSLATORS:Francis Giraldeau <francis.giraldeau@gmail.com> 2012"
+	--package-name=augedit
+	--package-version=0.1
+	--msgid-bugs-address=augeas-devel@redhat.com
         --directory=${CMAKE_BINARY_DIR}
         --directory=${CMAKE_SOURCE_DIR}
         --output-dir=${CMAKE_BINARY_DIR}
