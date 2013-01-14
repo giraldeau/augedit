@@ -1,7 +1,7 @@
 /* Copyright 2012 Francis Giraldeau
  *
  * This software is licensed under the GNU General Public License
- * (version 2.1 or later).  See the COPYING file in this distribution. 
+ * (version 2.1 or later).  See the COPYING file in this distribution.
  */
 
 using Gtk;
@@ -18,10 +18,10 @@ public class AugeditLoader : Object {
         KEY = 0,
         VALUE
     }
-    
+
     public TreeStore store { get; private set; }
     private Augeas.Tree augeas;
-    
+
     public AugeditLoader() {
         this.with_args(null, null);
     }
@@ -30,7 +30,7 @@ public class AugeditLoader : Object {
         this.augeas = new Augeas.Tree(root, loadpath, InitFlags.NO_LOAD);
         this.store = new TreeStore(2, typeof(string), typeof(string));
     }
-    
+
     public void populate(string path, TreeIter? parent) {
         string? val, key;
         TreeIter iter;
@@ -42,7 +42,7 @@ public class AugeditLoader : Object {
         // create a new node in the store
         store.append(out iter, parent);
         store.set(iter, 0, key, 1, val, -1);
-        
+
         // list children in the augeas tree
         string xpath = Path.build_path("/", path, "*");
         string[]? children = augeas.match(xpath);
@@ -51,14 +51,14 @@ public class AugeditLoader : Object {
             populate(child, iter);
         }
     }
-    
+
     public void load() {
         augeas.load();
         TreeIter? iter = null;
         populate("/augeas", iter);
         populate("/files", iter);
     }
-    
+
     public async void load_async() throws ThreadError {
         SourceFunc callback = load_async.callback;
         stdout.printf("loading started");
@@ -71,7 +71,7 @@ public class AugeditLoader : Object {
         yield;
         return;
     }
-    
+
     public unowned Augeas.Tree get_augeas() {
         return augeas;
     }
