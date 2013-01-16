@@ -1,4 +1,11 @@
-AM_CPPFLAGS = -I$(top_builddir)\
+AM_CPPFLAGS = \
+    -I$(top_builddir) \
+    -DDATADIR=\"$(datadir)\" \
+    -DPREFIX=\""$(prefix)"\" \
+    -DSYSCONFDIR=\""$(sysconfdir)"\" \
+    -DLIBDIR=\""$(libdir)"\" \
+    -DPACKAGE_DATADIR=\""$(pkgdatadir)"\" \
+    -DPACKAGE_LOCALEDIR=\""$(datadir)/locale"\" \
     $(AUGEDIT_CFLAGS)
 
 AM_VALAFLAGS = \
