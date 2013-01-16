@@ -1,0 +1,3 @@
+	../src/main.vala \
+	../src/augedit-application.vala \
+	../src/augedit-loader.vala

@@ -1,3 +1,6 @@
+# List of source files containing translatable strings.
+# Please keep this file sorted alphabetically.
+[encoding: UTF-8]
 src/main.vala
 src/augedit-application.vala
 src/augedit-loader.vala
