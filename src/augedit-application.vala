@@ -7,19 +7,10 @@
 using Gtk;
 using GLib;
 
-extern const string GETTEXT_PACKAGE;
-
-// Defined by CMake build script.
-extern const string _VERSION;
-extern const string _INSTALL_PREFIX;
-extern const string _GSETTINGS_DIR;
-extern const string _SOURCE_ROOT_DIR;
-
 public class AugeditApplication : Window {
 
-    public const string VERSION = _VERSION;
-    public const string NAME = "Augedit";
-    public const string PRGNAME = "augedit";
+    public const string VERSION = Config.PACKAGE_VERSION;
+    public const string PRGNAME = Config.PACKAGE_NAME;
 
     private TreeView tree_view;
     private AugeditLoader loader;
