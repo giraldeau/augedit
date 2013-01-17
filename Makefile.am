@@ -1,5 +1,7 @@
+gsettings_SCHEMAS = data/net.augeas.augedit.gschema.xml
+@GSETTINGS_RULES@
+
 SUBDIRS = po src tests
-#SUBDIRS = src tests
 EXTRA_DIST = autogen.sh
 
 DISTCLEANFILES = \
