@@ -33,6 +33,7 @@ pkg_modules="glib-2.0 >= 2.24.1
              gthread-2.0
              glib-2.0 >= 2.30.0
              gio-2.0 >= 2.28.0
+             gee-1.0 >= 0.6.0
              gtk+-3.0 >= 3.2.0
              libxml-2.0
              augeas >= 0.8"

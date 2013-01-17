@@ -13,6 +13,7 @@ AM_VALAFLAGS = \
     --vapidir  $(top_srcdir)/src/vapi \
     --pkg config \
     --pkg gtk+-3.0 \
+    --pkg gee-1.0 \
     --pkg augeas
 
 bin_PROGRAMS = augedit

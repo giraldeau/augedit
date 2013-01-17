@@ -6,9 +6,11 @@
 
 using Gtk;
 using GLib;
+using Gee;
 
 public class AugeditApplication : Window {
 
+    public const string SEP = "/";
     public const string VERSION = Config.PACKAGE_VERSION;
     public const string PRGNAME = Config.PACKAGE_NAME;
 
@@ -16,6 +18,7 @@ public class AugeditApplication : Window {
     private AugeditLoader loader;
     private Box container;
     private ScrolledWindow scroll;
+    private ScrolledWindow scroll_text;
     private Spinner spinner;
     private Table spinner_widget;
     private TextView text_view;
@@ -73,12 +76,17 @@ public class AugeditApplication : Window {
         text_view.editable = false;
         text_view.cursor_visible = false;
         text_view.set_sensitive(false);
+        text_view.set_wrap_mode(Gtk.WrapMode.WORD);
+
+        scroll_text = new ScrolledWindow(null, null);
+        scroll_text.set_policy(PolicyType.AUTOMATIC, PolicyType.AUTOMATIC);
+        scroll_text.add(this.text_view);
 
         container = new Box(Orientation.VERTICAL, 0);
         hbox = new Box(Orientation.HORIZONTAL, 0);
         hbox.set_homogeneous(true);
         hbox.pack_start(container, true, true, 0);
-        hbox.pack_start(text_view, true, true, 0);
+        hbox.pack_start(scroll_text, true, true, 0);
 
         vbox = new Box(Orientation.VERTICAL, 0);
         vbox.pack_start(toolbar, false, true, 0);
@@ -104,34 +112,61 @@ public class AugeditApplication : Window {
     }
 
     public void update_tags() {
+        LinkedList<string> list = get_selected_path(this.tree_view);
+        if (list.size <= 1)
+            return;
+        // remove heading "files"
+        list.remove_at(0);
+        bool found = false;
+        var builder = new StringBuilder();
+        foreach (var item in list) {
+            builder.append(SEP);
+            builder.append(item);
+            found = FileUtils.test(builder.str,
+                        FileTest.IS_REGULAR | FileTest.IS_SYMLINK);
+            if (found)
+                break;
+        }
+        if (!found)
+            return;
+        load_text_file(builder.str);
+    }
+
+    /*
+     * Convert path element list to path string
+     */
+    private string join_path(LinkedList<string> list) {
+        var builder = new StringBuilder();
+        foreach (var item in list) {
+            builder.append(SEP);
+            builder.append(item);
+        }
+        return builder.str;
+    }
+
+    /*
+     * Retrieve the list of path elements of the selected node in the tree.
+     */
+    private LinkedList<string> get_selected_path(TreeView tree) {
         TreeModel model;
         TreeIter iter, parent;
-        var builder = new StringBuilder ();
-        string last = null, path = null;
+        string label = null;
         bool ok = true;
-        tree_view.get_selection().get_selected(out model, out iter);
+        LinkedList<string> list = new LinkedList<string>();
+
+        tree.get_selection().get_selected(out model, out iter);
         if (!loader.store.iter_is_valid(iter))
-            return;
-        /*
-        // walk the tree until the root and build the path of the node
+            return list;
+
         while(ok) {
             GLib.Value key;
             model.get_value(iter, AugeditLoader.Columns.KEY, out key);
             ok = model.iter_parent(out parent, iter);
             iter = parent;
-            last = key.get_string();
-            builder.prepend(last);
-            builder.prepend("/");
+            label = key.get_string();
+            list.insert(0, label);
         }
-        if (last == null || last != "files")
-            return;
-        path = builder.str;
-        path = path["/files".length:path.length];
-        */
-        //loader.augeas.span()
-
-        if (path != null)
-            load_text_file(path);
+        return list;
     }
 
     private void load_text_file(string path) {
