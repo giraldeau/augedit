@@ -39,7 +39,7 @@ public class AugeditApplication : Window {
         Intl.bindtextdomain(Config.GETTEXT_PACKAGE, Config.PACKAGE_LOCALEDIR);
         Intl.bind_textdomain_codeset(Config.GETTEXT_PACKAGE, "UTF-8");
         Intl.textdomain(Config.GETTEXT_PACKAGE);
-        
+
         parse_arguments(args);
         this.title = _("Augeas configuration editor\n");
         this.window_position = WindowPosition.CENTER;
@@ -72,6 +72,7 @@ public class AugeditApplication : Window {
         text_view = new TextView();
         text_view.editable = false;
         text_view.cursor_visible = false;
+        text_view.set_sensitive(false);
 
         container = new Box(Orientation.VERTICAL, 0);
         hbox = new Box(Orientation.HORIZONTAL, 0);
@@ -86,13 +87,15 @@ public class AugeditApplication : Window {
     }
 
     public void show_spinner(bool enable) {
-        if (enable && spinner_widget.get_parent() == null) {
-            container.remove(scroll);
+        bool is_enabled = spinner_widget.get_parent() != null;
+        if (enable && !is_enabled) {
+            if (scroll.get_parent() != null)
+                container.remove(scroll);
             container.pack_start(spinner_widget, true, false, 0);
             spinner_widget.show_all();
             spinner.start();
         }
-        if (!enable && spinner_widget.get_parent() != null) {
+        if (!enable && is_enabled) {
             container.remove(spinner_widget);
             container.pack_start(scroll, true, true, 0);
             scroll.show_all();
@@ -127,13 +130,18 @@ public class AugeditApplication : Window {
         */
         //loader.augeas.span()
 
-        string text;
+        if (path != null)
+            load_text_file(path);
+    }
+
+    private void load_text_file(string path) {
+        string text = "";
         try {
             FileUtils.get_contents(path, out text);
-            text_view.buffer.text = text;
         } catch (Error e) {
-            stdout.printf("Error %s\n", e.message);
+            stdout.printf("Error reading file%s\n", e.message);
         }
+        text_view.buffer.text = text;
     }
 
     private int parse_arguments(string[] args) {
