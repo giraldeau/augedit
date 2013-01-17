@@ -1,1 +1,8 @@
-* Fix gettext when installing in /usr/local
+* Use gsettings to save and reload window position
+* Add icon
+* Add desktop file
+* Add about dialog
+* Load text file in TextView
+* Highlight key/value in TextView
+* Split file and content tree nodes
+* Support file and tree editing
