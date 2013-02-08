@@ -28,6 +28,14 @@ AC_SUBST([GETTEXT_PACKAGE], [$PACKAGE_TARNAME])
 AC_DEFINE_UNQUOTED([GETTEXT_PACKAGE], ["$GETTEXT_PACKAGE"], [GETTEXT package name])
 IT_PROG_INTLTOOL([0.50.0])
 
+AUGEDIT_VALAFLAGS=" \
+--thread \
+--vapidir  \$(top_srcdir)/src/vapi \
+--pkg config \
+--pkg gtk+-3.0 \
+--pkg gee-1.0 \
+--pkg augeas "
+
 pkg_modules="glib-2.0 >= 2.24.1
              gobject-2.0 >= 2.24.1
              gthread-2.0
@@ -39,8 +47,20 @@ pkg_modules="glib-2.0 >= 2.24.1
              augeas >= 0.8"
 
 PKG_CHECK_MODULES(AUGEDIT, [$pkg_modules])
+
+AC_ARG_ENABLE(debug,
+    [AS_HELP_STRING([--disable-debug],
+        [disable debug information [default=yes]])],
+        [enable_debug=$enableval], [enable_debug=yes])
+if test "x$enable_debug" = "xyes"; then
+    AUGEDIT_CFLAGS="$AUGEDIT_CFLAGS -g -O0"
+    AUGEDIT_VALAFLAGS="$AUGEDIT_VALAFLAGS -g --save-temps"
+    AC_DEFINE([ENABLE_DEBUG],[1],[Whether debugging support is enabled])
+fi
+
 AC_SUBST(AUGEDIT_CFLAGS)
 AC_SUBST(AUGEDIT_LIBS)
+AC_SUBST(AUGEDIT_VALAFLAGS)
 
 AC_OUTPUT
 

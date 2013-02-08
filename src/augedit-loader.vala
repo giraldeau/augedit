@@ -61,7 +61,7 @@ public class AugeditLoader : Object {
 
     public async void load_async() throws ThreadError {
         SourceFunc callback = load_async.callback;
-        stdout.printf("loading started");
+        //stdout.printf("loading started");
         ThreadFunc<void*> run = () => {
             this.load();
             Idle.add((owned) callback);

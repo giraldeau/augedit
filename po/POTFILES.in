@@ -4,3 +4,4 @@
 src/main.vala
 src/augedit-application.vala
 src/augedit-loader.vala
+src/augedit-span.vala

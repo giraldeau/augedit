@@ -8,20 +8,18 @@ AM_CPPFLAGS = \
     -DPACKAGE_LOCALEDIR=\""$(datadir)/locale"\" \
     $(AUGEDIT_CFLAGS)
 
-AM_VALAFLAGS = \
-    --thread \
-    --vapidir  $(top_srcdir)/src/vapi \
-    --pkg config \
-    --pkg gtk+-3.0 \
-    --pkg gee-1.0 \
-    --pkg augeas
+AM_VALAFLAGS = $(AUGEDIT_VALAFLAGS)
 
 bin_PROGRAMS = augedit
+noinst_LTLIBRARIES = libaugedit.la
 
-augedit_SOURCES = main.vala \
-    augedit-loader.vala \
-    augedit-application.vala
+libaugedit_la_SOURCES = augedit-loader.vala \
+    augedit-application.vala \
+    augedit-span.vala
+libaugedit_la_VALAFLAGS = $(AM_VALAFLAGS) --library augedit -H augedit.h
 
-augedit_LDADD = $(AUGEDIT_LIBS)
+augedit_SOURCES = main.vala
+augedit_LDADD = libaugedit.la $(AUGEDIT_LIBS)
+augedit_VALAFLAGS = $(AM_VALAFLAGS) augedit.vapi
 
 CLEANFILES = *.h *.c *.vapi *.stamp
