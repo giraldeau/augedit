@@ -7,13 +7,19 @@
 using Gtk;
 using GLib;
 using Gee;
+using Gdk;
+using Augeas;
 
-public class AugeditApplication : Window {
+public class AugeditApplication : Gtk.Window {
 
     public const string SEP = "/";
     public const string VERSION = Config.PACKAGE_VERSION;
     public const string PRGNAME = Config.PACKAGE_NAME;
 
+
+    private Color color_label;
+    private Color color_value;
+    private Color color_span;
     private TreeView tree_view;
     private AugeditLoader loader;
     private Box container;
@@ -26,6 +32,7 @@ public class AugeditApplication : Window {
     private ToolButton save_button;
     private Box vbox;
     private Box hbox;
+    private string current_file = "";
 
     static string aug_root;
     static bool version = false;
@@ -53,6 +60,7 @@ public class AugeditApplication : Window {
         createToolbar();
         createTreeView();
         createTextView();
+        createTags();
 
         spinner = new Spinner();
         var spinner_label = new Label(_("Loading..."));
@@ -77,6 +85,15 @@ public class AugeditApplication : Window {
         add(vbox);
     }
 
+    private void createTags() {
+        Gdk.Color.parse("#ff0000", out color_label);
+        Gdk.Color.parse("#00ff00", out color_value);
+        Gdk.Color.parse("#0000ff", out color_span);
+        setup_tag("label", color_label);
+        setup_tag("value", color_value);
+        setup_tag("span", color_span);
+    }
+
     private void createToolbar() {
         toolbar = new Toolbar();
         toolbar.get_style_context().add_class(STYLE_CLASS_PRIMARY_TOOLBAR);
@@ -91,7 +108,7 @@ public class AugeditApplication : Window {
         tree_view.insert_column_with_attributes(-1, "Value",
             new CellRendererText(), "text", AugeditLoader.Columns.VALUE, null);
         tree_view.cursor_changed.connect(() => {
-            update_tags();
+            update_text_view();
         });
 
         scroll_tree = new ScrolledWindow(null, null);
@@ -131,8 +148,9 @@ public class AugeditApplication : Window {
         }
     }
 
-    public void update_tags() {
+    public void update_text_view() {
         LinkedList<string> list = get_selected_path(tree_view);
+        string selected_path = join_path(list);
         if (list.size <= 1)
             return;
         // remove heading "files"
@@ -147,9 +165,65 @@ public class AugeditApplication : Window {
             if (found)
                 break;
         }
-        if (!found)
-            return;
-        load_text_file(builder.str);
+        if (found) {
+            // only reload if the file changes
+            set_current_file(builder.str);
+            update_highlight(selected_path);
+        } else {
+            set_current_file("");
+        }
+    }
+
+    public void set_current_file(string file) {
+        if (current_file != file) {
+            load_text_file(file);
+        }
+        current_file = file;
+    }
+
+    public void update_highlight(string path) {
+        var span = new AugSpan();
+        span.fetch(loader.get_augeas(), path);
+        //stdout.printf("%s %s\n", path, span.to_string());
+        var buf = text_view.get_buffer();
+
+        // clear tags
+        TextIter start;
+        TextIter end;
+        buf.get_iter_at_offset(out start, 0);
+        buf.get_iter_at_offset(out end, buf.get_char_count());
+        buf.remove_all_tags(start, end);
+        highlight_text("span", span.span_start, span.span_end);
+        highlight_text("label", span.label_start, span.label_end);
+        highlight_text("value", span.value_start, span.value_end);
+
+    }
+
+    public void highlight_text(string name, uint start, uint end) {
+        TextIter start_iter;
+        TextIter end_iter;
+        var buf = text_view.get_buffer();
+        TextTag s = lookup_tag(name);
+        buf.get_iter_at_offset(out start_iter, (int) start);
+        buf.get_iter_at_offset(out end_iter, (int) end);
+        buf.apply_tag(s, start_iter, end_iter);
+    }
+
+    public void setup_tag(string name, Gdk.Color color) {
+        var buf = text_view.get_buffer();
+        var tbl = buf.get_tag_table();
+        TextTag tag = tbl.lookup(name);
+        if (tag == null) {
+            tag = new TextTag(name);
+            tag.set_property("background-gdk", color);
+            tbl.add(tag);
+        }
+    }
+
+    public TextTag? lookup_tag(string name) {
+        var buf = text_view.get_buffer();
+        var tbl = buf.get_tag_table();
+        return tbl.lookup(name);
     }
 
     /*
@@ -191,10 +265,12 @@ public class AugeditApplication : Window {
 
     private void load_text_file(string path) {
         string text = "";
-        try {
-            FileUtils.get_contents(path, out text);
-        } catch (Error e) {
-            stdout.printf("Error reading file%s\n", e.message);
+        if (path.length > 0) {
+            try {
+                FileUtils.get_contents(path, out text);
+            } catch (Error e) {
+                stdout.printf("Error reading file%s\n", e.message);
+            }
         }
         text_view.buffer.text = text;
     }

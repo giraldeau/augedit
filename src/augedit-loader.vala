@@ -27,7 +27,7 @@ public class AugeditLoader : Object {
     }
 
     public AugeditLoader.with_args(string? root, string? loadpath) {
-        this.augeas = new Augeas.Tree(root, loadpath, InitFlags.NO_LOAD);
+        this.augeas = new Augeas.Tree(root, loadpath, InitFlags.NO_LOAD | InitFlags.ENABLE_SPAN);
         this.store = new TreeStore(2, typeof(string), typeof(string));
     }
 
