@@ -17,11 +17,13 @@ public class AugeditApplication : Window {
     private TreeView tree_view;
     private AugeditLoader loader;
     private Box container;
-    private ScrolledWindow scroll;
+    private ScrolledWindow scroll_tree;
     private ScrolledWindow scroll_text;
     private Spinner spinner;
     private Table spinner_widget;
     private TextView text_view;
+    private Toolbar toolbar;
+    private ToolButton save_button;
     private Box vbox;
     private Box hbox;
 
@@ -48,21 +50,9 @@ public class AugeditApplication : Window {
         this.window_position = WindowPosition.CENTER;
         set_default_size(600, 500);
 
-        var toolbar = new Toolbar();
-        toolbar.get_style_context().add_class(STYLE_CLASS_PRIMARY_TOOLBAR);
-
-        this.tree_view = new TreeView();
-        this.tree_view.insert_column_with_attributes(-1, "Key",
-            new CellRendererText(), "text", AugeditLoader.Columns.KEY, null);
-        this.tree_view.insert_column_with_attributes(-1, "Value",
-            new CellRendererText(), "text", AugeditLoader.Columns.VALUE, null);
-        this.tree_view.cursor_changed.connect(() => {
-            update_tags();
-        });
-
-        scroll = new ScrolledWindow(null, null);
-        scroll.set_policy(PolicyType.AUTOMATIC, PolicyType.AUTOMATIC);
-        scroll.add(this.tree_view);
+        createToolbar();
+        createTreeView();
+        createTextView();
 
         spinner = new Spinner();
         var spinner_label = new Label(_("Loading..."));
@@ -72,6 +62,44 @@ public class AugeditApplication : Window {
         spinner_widget = new Table(3, 3, true);
         spinner_widget.attach(box, 1, 2, 1, 2, AttachOptions.EXPAND, AttachOptions.FILL, 3, 3);
 
+        hbox = new Box(Orientation.HORIZONTAL, 0);
+        hbox.set_homogeneous(true);
+        hbox.pack_start(scroll_tree, true, true, 0);
+        hbox.pack_start(scroll_text, true, true, 0);
+
+        // the container's children toggles between hbox and spinner
+        container = new Box(Orientation.VERTICAL, 0);
+        show_spinner(true);
+
+        vbox = new Box(Orientation.VERTICAL, 0);
+        vbox.pack_start(toolbar, false, true, 0);
+        vbox.pack_start(container, true, true, 0);
+        add(vbox);
+    }
+
+    private void createToolbar() {
+        toolbar = new Toolbar();
+        toolbar.get_style_context().add_class(STYLE_CLASS_PRIMARY_TOOLBAR);
+        save_button = new ToolButton.from_stock(Stock.SAVE);
+        toolbar.add(save_button);
+    }
+
+    private void createTreeView() {
+        tree_view = new TreeView();
+        tree_view.insert_column_with_attributes(-1, "Key",
+            new CellRendererText(), "text", AugeditLoader.Columns.KEY, null);
+        tree_view.insert_column_with_attributes(-1, "Value",
+            new CellRendererText(), "text", AugeditLoader.Columns.VALUE, null);
+        tree_view.cursor_changed.connect(() => {
+            update_tags();
+        });
+
+        scroll_tree = new ScrolledWindow(null, null);
+        scroll_tree.set_policy(PolicyType.AUTOMATIC, PolicyType.AUTOMATIC);
+        scroll_tree.add(tree_view);
+    }
+
+    private void createTextView() {
         text_view = new TextView();
         text_view.editable = false;
         text_view.cursor_visible = false;
@@ -80,39 +108,31 @@ public class AugeditApplication : Window {
 
         scroll_text = new ScrolledWindow(null, null);
         scroll_text.set_policy(PolicyType.AUTOMATIC, PolicyType.AUTOMATIC);
-        scroll_text.add(this.text_view);
-
-        container = new Box(Orientation.VERTICAL, 0);
-        hbox = new Box(Orientation.HORIZONTAL, 0);
-        hbox.set_homogeneous(true);
-        hbox.pack_start(container, true, true, 0);
-        hbox.pack_start(scroll_text, true, true, 0);
-
-        vbox = new Box(Orientation.VERTICAL, 0);
-        vbox.pack_start(toolbar, false, true, 0);
-        vbox.pack_start(hbox, true, true, 0);
-        add(vbox);
+        scroll_text.add(text_view);
     }
 
     public void show_spinner(bool enable) {
-        bool is_enabled = spinner_widget.get_parent() != null;
-        if (enable && !is_enabled) {
-            if (scroll.get_parent() != null)
-                container.remove(scroll);
+        empty_container(container);
+        if (enable) {
             container.pack_start(spinner_widget, true, false, 0);
             spinner_widget.show_all();
             spinner.start();
-        }
-        if (!enable && is_enabled) {
-            container.remove(spinner_widget);
-            container.pack_start(scroll, true, true, 0);
-            scroll.show_all();
+        } else {
+            container.pack_start(hbox, true, true, 0);
+            hbox.show_all();
             spinner.stop();
         }
     }
 
+    public void empty_container(Container container) {
+        var children = container.get_children();
+        foreach(Widget child in children) {
+            container.remove(child);
+        }
+    }
+
     public void update_tags() {
-        LinkedList<string> list = get_selected_path(this.tree_view);
+        LinkedList<string> list = get_selected_path(tree_view);
         if (list.size <= 1)
             return;
         // remove heading "files"
@@ -198,7 +218,7 @@ public class AugeditApplication : Window {
 
     public void load_augeas() {
         show_spinner(true);
-        this.loader = new AugeditLoader.with_args(aug_root, null);
+        loader = new AugeditLoader.with_args(aug_root, null);
         loader.load_async.begin((obj, res) => {
             try {
                 loader.load_async.end(res);
@@ -207,7 +227,7 @@ public class AugeditApplication : Window {
                 assert(false);
             }
             show_spinner(false);
-            this.tree_view.set_model(loader.store);
+            tree_view.set_model(loader.store);
         });
     }
 
