@@ -72,8 +72,10 @@ public class AugeditApplication : Gtk.Window {
 
         hbox = new Box(Orientation.HORIZONTAL, 0);
         hbox.set_homogeneous(true);
+        var frame = new Frame(null);
+        frame.add(scroll_text);
         hbox.pack_start(scroll_tree, true, true, 0);
-        hbox.pack_start(scroll_text, true, true, 0);
+        hbox.pack_start(frame, true, true, 0);
 
         // the container's children toggles between hbox and spinner
         container = new Box(Orientation.VERTICAL, 0);
@@ -86,9 +88,9 @@ public class AugeditApplication : Gtk.Window {
     }
 
     private void createTags() {
-        Gdk.Color.parse("#ff0000", out color_label);
-        Gdk.Color.parse("#00ff00", out color_value);
-        Gdk.Color.parse("#0000ff", out color_span);
+        Gdk.Color.parse("#ffdfdf", out color_label);
+        Gdk.Color.parse("#dfdfff", out color_value);
+        Gdk.Color.parse("#eeeeee", out color_span);
         setup_tag("label", color_label);
         setup_tag("value", color_value);
         setup_tag("span", color_span);
@@ -151,27 +153,21 @@ public class AugeditApplication : Gtk.Window {
     public void update_text_view() {
         LinkedList<string> list = get_selected_path(tree_view);
         string selected_path = join_path(list);
-        if (list.size <= 1)
-            return;
-        // remove heading "files"
-        list.remove_at(0);
-        bool found = false;
-        var builder = new StringBuilder();
-        foreach (var item in list) {
-            builder.append(SEP);
-            builder.append(item);
-            found = FileUtils.test(builder.str,
-                        FileTest.IS_REGULAR | FileTest.IS_SYMLINK);
-            if (found)
-                break;
-        }
-        if (found) {
-            // only reload if the file changes
-            set_current_file(builder.str);
-            update_highlight(selected_path);
-        } else {
-            set_current_file("");
-        }
+        var span = new AugSpan();
+        span.fetch(loader.get_augeas(), selected_path);
+        set_current_file(span.filename);
+        //stdout.printf("%s %s\n", selected_path, span.to_string());
+        var buf = text_view.get_buffer();
+        // clear tags
+        TextIter start;
+        TextIter end;
+        buf.get_iter_at_offset(out start, 0);
+        buf.get_iter_at_offset(out end, buf.get_char_count());
+        buf.remove_all_tags(start, end);
+        // FIXME: do not highlight the whole span, transparency support is missing
+        //highlight_text("span", span.span_start, span.span_end);
+        highlight_text("label", span.label_start, span.label_end);
+        highlight_text("value", span.value_start, span.value_end);
     }
 
     public void set_current_file(string file) {
@@ -179,24 +175,6 @@ public class AugeditApplication : Gtk.Window {
             load_text_file(file);
         }
         current_file = file;
-    }
-
-    public void update_highlight(string path) {
-        var span = new AugSpan();
-        span.fetch(loader.get_augeas(), path);
-        //stdout.printf("%s %s\n", path, span.to_string());
-        var buf = text_view.get_buffer();
-
-        // clear tags
-        TextIter start;
-        TextIter end;
-        buf.get_iter_at_offset(out start, 0);
-        buf.get_iter_at_offset(out end, buf.get_char_count());
-        buf.remove_all_tags(start, end);
-        highlight_text("span", span.span_start, span.span_end);
-        highlight_text("label", span.label_start, span.label_end);
-        highlight_text("value", span.value_start, span.value_end);
-
     }
 
     public void highlight_text(string name, uint start, uint end) {
